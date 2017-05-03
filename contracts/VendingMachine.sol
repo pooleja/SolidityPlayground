@@ -19,51 +19,64 @@ contract VendingMachine is Ownable {
     // Initial price that each ETH sent in will get back in tokens.
     uint public initialPricePerEth = 10000;
 
+    // Amount of tokens to sell per generation
+    uint public tokensPerGeneration = 120000;
+
     // Constructor initalized with the token contract that it will be selling.
     function VendingMachine(ERC20 tokenContract){
         token = tokenContract;
     }
 
-    function calculateSaleAmount(uint alreadySold, uint ethAmount) uint{
-        // First get the amount of tokens sold from the beginning of this generation.
+    // This function will calculate how many tokens they will get with the amount of ETH they are sending in
+    function calculateSaleAmount(uint amountSoldStart, uint ethAmount) uint{
+        // Keep track of the amount to sell
+        uint amountToSell = 0;
+
+        // First get the amount of tokens sold from the beginning of this generation and the amount left.
+        uint currentGeneration = amountSoldStart / tokensPerGeneration;
+        uint amountLeftInCurrentGeneration = tokensPerGeneration - (amountSoldStart % tokensPerGeneration);
+
         // Calculate the price per ETH of the current generation
+        uint salePrice = initialPricePerEth;
+        for(uint i = 0 ; i < currentGeneration; i ++){
+            salePrice = salePrice / 2;
+        }
+
         // Calculate how mant tokens they are trying to buy
+        uint amountToSell = salePrice * ethAmount;
+
         // If they are buying past the current generation, then figure out how much they purchase in the next generation.
+        if (amountToSell > amountLeftInCurrentGeneration){
+            // Calculate how much ETH would be used from the current generation
+            uint ethFromCurrentGen = salePrice * amountLeftInCurrentGeneration;
+
+            // Recursively call this function with the starting amount being the next gen and remaining ETH
+            return (ethFromCurrentGen * salePrice) + amountLeftInCurrentGeneration(currentGeneration * tokensPerGeneration, ethAmount - ethFromCurrentGen) ;
+        }
+
+        // Return the amount to sell
+        return amountToSell;
     }    
 
     // When this function is called, it will send the originator X tokens.  
     // X is determined by the price calculated based on the current generation of sales.
     function PurchaseTokens payable(){
 
-        
+        // Figure out how many tokens they are buying
+        uint amountPurchased = calculateSaleAmount(amountSold, msg.amount);
 
         // Updatete the total amount sold
+        amountSold += amountPurchased;
 
-        // Send the tokens to the sender's account
+        // Send the tokens to the buyers's account
+        if(!token.transfer(msg.sender, amountPurchased)){
+            throw;
+        }
     }
 
     // This function allows the owner to withdraw any ETH that was sent in via purchases.
     function WithdrawEth(uint amount) onlyOwner {
-        // Send out what they are requesting to withdraw
+        // Send out what they are requesting to withdraw and trigger the send
         msg.sender.send(amount);
     }
 }
-
-
-
-Example:
-
-I want to sell 10 tokens for 10 ETH, but I want the first token sole to be super cheap
-
-First token sells for 0.1 ETH and last sells for 0.9 ETH
-
-0.1
-0.2
-0.3
-0.4
-0.5
-0.6
-0.7
-0.8
-0.9
-1
