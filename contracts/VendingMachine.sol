@@ -48,22 +48,3 @@ contract VendingMachine is Ownable {
         msg.sender.send(amount);
     }
 }
-
-
-
-Example:
-
-I want to sell 10 tokens for 10 ETH, but I want the first token sole to be super cheap
-
-First token sells for 0.1 ETH and last sells for 0.9 ETH
-
-0.1
-0.2
-0.3
-0.4
-0.5
-0.6
-0.7
-0.8
-0.9
-1
