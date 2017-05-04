@@ -65,6 +65,11 @@ contract VendingMachine is Ownable {
         // Figure out how many tokens they are buying
         uint amountPurchased = calculateSaleAmount(amountSold, msg.amount);
 
+        // Verify the buyer isn't going over the limit of how many this contract is selling
+        if( amountSold + amountPurchased > amountToSell ){
+            throw;
+        }
+
         // Updatete the total amount sold
         amountSold += amountPurchased;
 
