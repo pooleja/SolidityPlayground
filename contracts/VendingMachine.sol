@@ -11,16 +11,16 @@ contract VendingMachine is Ownable {
     ERC20 public token;
 
     // Total Amount of tokens to sell to purchasers
-    uint public amountToSell = 21000000;
+    uint public amountToSell = 21000000 * 10**18;
 
     // Total amount of tokens that have been sold so far.  Starts at 0.
     uint public amountSold = 0;
 
     // Initial price that each ETH sent in will get back in tokens.
-    uint public initialPricePerEth = 10000;
+    uint public initialPricePerEth = 10000 * 10**18 ;
 
     // Amount of tokens to sell per generation
-    uint public tokensPerGeneration = 120000;
+    uint public tokensPerGeneration = 120000 * 10**18;
 
     // Constructor initalized with the token contract that it will be selling.
     function VendingMachine(ERC20 tokenContract){
@@ -37,10 +37,7 @@ contract VendingMachine is Ownable {
         uint amountLeftInCurrentGeneration = tokensPerGeneration - (amountSoldStart % tokensPerGeneration);
 
         // Calculate the price per ETH of the current generation
-        uint salePrice = initialPricePerEth;
-        for(uint i = 0 ; i < currentGeneration; i ++){
-            salePrice = salePrice / 2;
-        }
+        uint salePrice = initialPricePerEth / 2 ** currentGeneration;        
 
         // Calculate how mant tokens they are trying to buy
         uint amountToSell = salePrice * ethAmount;
